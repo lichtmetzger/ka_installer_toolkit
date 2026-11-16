@@ -1,4 +1,28 @@
-# TRON 2.0 Killer App Mod installer – unpack, fix, rebuild
+# TRON 2.0 Killer App Mod Patcher
+
+This mod has been built with Claude AI. It unpacks the Killer App Mod 1.1a, 
+applies a few fixes (notably, a broken online check, a "Run as administrator flag"
+that broke Steam and a problem if you had more than 2TB of free space) and then repacks 
+it as a new version "1.1b".
+
+THIS SHOULD ONLY BE TREATED AS AN EMERGENCY FIX AND NOT AS A SOLID BASE FOR FURTHER MOD DEVELOPMENT.
+All credit for the original installer goes to LDSO. While he did good work, he has sadly been absent 
+for years and did not share the source code for the installer with the community.
+
+Ideally, with these AI-generated tools all of the relevant files and scripts can be unpacked and 
+used to develop a new, more future-proof installer that does not depend on proprietary software.
+
+Sadly, I lack the time and expertise to do this. Have fun and get cracking!
+
+On a personal note, I know that AI is being shoved into all of our lives violently and is threatening 
+the profession of software development as a whole. In this case, it has proven useful. Do know that I 
+am not proud of tainting my Github profile by using it, but knowing that Anthropic probably burned thousands
+of dollars to have their agents run for half an hour fixing up a really old computer game makes me
+sleep a little better at night.
+
+If I had the time, I would've done this by hand (and I would've actually been proud of it).
+
+# Sloppy, AI-generated README continues:
 
 This toolkit lets you take the installer `ka_mod_v1x1a_setup.exe` apart, see every script and every
 installed file, re-apply the fixes made for `ka_mod_v1x1b_setup.exe`, and build a new installer
