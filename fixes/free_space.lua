@@ -1,0 +1,67 @@
+function g_GetFreeSpaceExactBytes(strDrive, nRaw)
+	-- Asks Windows for the exact free space (in bytes) through PowerShell. Returns nil if that is not possible.
+	if(String.Length(strDrive) < 2) or (String.Mid(strDrive, 2, 1) ~= ":") then
+		return nil;
+	end
+	local strRoot = String.Upper(String.Left(strDrive, 2));
+	local strKey = strRoot..tostring(nRaw);
+	if(g_KAFreeSpaceCache == nil) then
+		g_KAFreeSpaceCache = {};
+	end
+	if(g_KAFreeSpaceCache[strKey] ~= nil) then
+		if(g_KAFreeSpaceCache[strKey] == false) then
+			return nil;
+		end
+		return g_KAFreeSpaceCache[strKey];
+	end
+
+	local nResult = nil;
+	local strPS = SessionVar.Expand("%SystemFolder%\\WindowsPowerShell\\v1.0\\powershell.exe");
+	local strOut = SessionVar.Expand("%TempFolder%\\ka_freespace.txt");
+	if File.DoesExist(strPS) then
+		File.Delete(strOut, false, false, false, nil);
+		File.Run(strPS, "-NoProfile -NonInteractive -ExecutionPolicy Bypass -Command \"[IO.File]::WriteAllText('"..strOut.."', (New-Object IO.DriveInfo('"..strRoot.."')).AvailableFreeSpace.ToString())\"", "", SW_HIDE, true);
+		if File.DoesExist(strOut) then
+			local strText = TextFile.ReadToString(strOut);
+			if(strText ~= nil) and (strText ~= "") then
+				local nValue = String.ToNumber(String.TrimLeft(String.TrimRight(strText, nil), nil));
+				if(nValue ~= nil) and (nValue > 0) then
+					nResult = nValue;
+				end
+			end
+		end
+	end
+
+	if(nResult == nil) then
+		g_KAFreeSpaceCache[strKey] = false;
+	else
+		g_KAFreeSpaceCache[strKey] = nResult;
+	end
+	return nResult;
+end
+
+function g_GetFreeSpaceInBytes(strDrive)
+	local nFreeSpace = Drive.GetFreeSpace(strDrive);
+
+	-- Drive.GetFreeSpace returns whole megabytes as a signed 32-bit number. That overflows (negative or wrong values)
+	-- once a drive has 2 TB or more free, which made the installer claim there was not enough space.
+	-- If the result looks wrong, ask Windows directly for the exact value.
+	if(nFreeSpace < 2560) then
+		local nExact = g_GetFreeSpaceExactBytes(strDrive, nFreeSpace);
+		if(nExact ~= nil) then
+			return nExact;
+		end
+		-- No exact value available: a negative number other than the error value -1 can only be an overflow, i.e. 2 TB or more free
+		if(nFreeSpace < -1) then
+			return 2199023255552;
+		end
+	end
+
+	if(nFreeSpace ~= -1) then
+		-- convert from MB to bytes
+		nFreeSpace = nFreeSpace * 1024 * 1024;
+	else
+		nFreeSpace = 0;
+	end
+	return nFreeSpace;
+end

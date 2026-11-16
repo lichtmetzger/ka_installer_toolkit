@@ -1,0 +1,15 @@
+# text block(s) 033 of irsetup.dat (extract them with: sfxtool.py texts-extract)
+--- original block 033
++++ fixed block 033
+@@ -34,5 +34,10 @@
+ 
+ 		-- set %SpaceAvailable% to a string with an appropriate unit of measurement (e.g. "0 bytes")
+-		SessionVar.Set("%SpaceAvailable%", String.GetFormattedSize(_SpaceAvailable) );
++		if(_SpaceAvailable >= 2199023255552) then
++			-- 2 TB or more
++			SessionVar.Set("%SpaceAvailable%", Math.Round(_SpaceAvailable / 1099511627776, 2).." TB");
++		else
++			SessionVar.Set("%SpaceAvailable%", String.GetFormattedSize(_SpaceAvailable) );
++		end
+ 
+ 		-- from _SUF70_Global_Functions.lua:

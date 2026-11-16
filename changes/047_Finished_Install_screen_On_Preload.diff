@@ -1,0 +1,41 @@
+# text block(s) 047 of irsetup.dat (extract them with: sfxtool.py texts-extract)
+--- original block 047
++++ fixed block 047
+@@ -1,9 +1,7 @@
+ -- These actions are performed before the screen is shown.
+ 
+--- Create shortcuts for the LDSO site and All TRON 2.0 Files Page
++-- Create shortcuts for the LDSO site and All TRON 2.0 Files Page (Start menu only; no URL shortcuts on the desktop)
+ Shell.CreateShortcut(Shell.GetFolder(SHF_STARTMENUPROGRAMS_COMMON).."\\%AppShortcutFolderName%", "LDSO Site", "http://www.ldso.net/", "", "", "%SystemFolder%\\SHELL32.dll", 220, SW_SHOWNORMAL, nil, "");
+ Shell.CreateShortcut(Shell.GetFolder(SHF_STARTMENUPROGRAMS_COMMON).."\\%AppShortcutFolderName%", "Additional TRON 2.0 File Downloads", "http://tronfaq.blogspot.com/2006/02/all-tron-20-files-in-one-place.html", "", "", "%SystemFolder%\\SHELL32.dll", 220, SW_SHOWNORMAL, nil, "");
+-Shell.CreateShortcut(Shell.GetFolder(SHF_DESKTOP_COMMON), "LDSO Site", "http://www.ldso.net/", "", "", "%SystemFolder%\\SHELL32.dll", 220, SW_SHOWNORMAL, nil, "");
+-Shell.CreateShortcut(Shell.GetFolder(SHF_DESKTOP_COMMON), "Additional TRON 2.0 File Downloads", "http://tronfaq.blogspot.com/2006/02/all-tron-20-files-in-one-place.html", "", "", "%SystemFolder%\\SHELL32.dll", 220, SW_SHOWNORMAL, nil, "");
+ 
+ -- Create a shortcut to run TRON 2.0 that bypasses Steam, if the user has the Steam version
+@@ -336,12 +334,4 @@
+ 	File.Delete("%AppFolder%\\registry.bat", false, false, true, nil);
+ 
+-	-- Set Steam.exe to RUNASADMIN in AppCompatFlags, as a precaution to help get the Overlay, Cloud, and Big Picture working properly
+-	strRegValue = Registry.GetValue(HKEY_CURRENT_USER, "Software\\Valve\\Steam", "SteamExe", false)
+-	-- Convert all forward slashes to backslashes, or else File.Copy won't work!
+-	strRegValue = String.Replace(strRegValue, "/", "\\", false);
+-
+-	-- Set Steam.exe to RUNASADMIN
+-	Registry.SetValue(HKEY_CURRENT_USER, "Software\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Layers", strRegValue, "~ RUNASADMIN", REG_SZ);
+-
+ 	-- Get the TRON 2.0 install path
+ 	steamApps = SessionVar.Expand("%AppFolder%");
+@@ -473,11 +463,6 @@
+ File.SetAttributes("%SystemFolder%\\drivers\\etc\\hosts", {ReadOnly=true});
+ 
+--- Change the name of the server in Default.txt in the ServerData folder, to "TRON 2.0 KAMod v1.1a"
+-INIFile.SetValue("%AppFolder%\\ServerData\\Default.txt", "Settings", "ServerName", " \"TRON 2.0: KAMod v1.1a\"");
+-
+--- Warn the user about setting Steam.exe to RUNASADMIN
+-if steam == true then
+-	Dialog.Message("Steam set to run as Admin", "The installer has detected that you have the Steam version of TRON 2.0.\r\n\r\nSteam has automatically been set to run with Administrator privileges.\r\nWhen Steam complains that running in \"Windows compatibility mode\r\nis not recommended\", click \"Cancel\" so that it continues to run in\r\nAdmin mode.\r\n\r\nThis was done to potentially ensure that the Steam Overlay, Cloud,\r\nand Big Picture features will work correctly with TRON 2.0.\r\n\r\nIf you find that these features, TRON 2.0 itself, or even other games\r\nin your Steam Library are not working correctly as a result of this\r\nchange: the following are instructions on how to disable the Admin\r\nsetting for Steam.\r\n\r\nRight-click the Steam icon in your Start Menu or Desktop > Click\r\nProperties > Choose the Compatibility tab > Remove the checkmark in\r\nthe box beside \"Run this program as an administrator\" > Click OK.", MB_OK, MB_ICONEXCLAMATION);
+-end
++-- Change the name of the server in Default.txt in the ServerData folder, to "TRON 2.0 KAMod v1.1b"
++INIFile.SetValue("%AppFolder%\\ServerData\\Default.txt", "Settings", "ServerName", " \"TRON 2.0: KAMod v1.1b\"");
+ 
+ -- Force the user to read the readme

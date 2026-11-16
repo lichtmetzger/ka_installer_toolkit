@@ -1,0 +1,10 @@
+# text block(s) 051 of irsetup.dat (extract them with: sfxtool.py texts-extract)
+--- original block 051
++++ fixed block 051
+@@ -1,5 +1,5 @@
+  Gracias por elegir %ProductName%!
+ 
+- Tenga en cuenta que v1.1a de la Killer App Mod NO es compatible en línea Multijugador, con las versiones anteriores de la mod.
++ Tenga en cuenta que v1.1b de la Killer App Mod NO es compatible en línea Multijugador, con las versiones anteriores de la mod.
+  NO instalar los parches o cracks No-CD después de instalar el mod. Esto puede hacer que el Killer App Mod que dejar de trabajar.
+ 

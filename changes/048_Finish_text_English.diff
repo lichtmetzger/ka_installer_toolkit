@@ -1,0 +1,10 @@
+# text block(s) 048 of irsetup.dat (extract them with: sfxtool.py texts-extract)
+--- original block 048
++++ fixed block 048
+@@ -1,5 +1,5 @@
+ Thank you for using the %ProductName%!
+ 
+-Note that v1.1a of the Killer App Mod is NOT compatible in online Multiplayer, with previous versions of the mod.
++Note that v1.1b of the Killer App Mod is NOT compatible in online Multiplayer, with previous versions of the mod.
+ 
+ Do NOT to install any patches or No-CD cracks after installing the mod.  This can cause the Killer App Mod to stop working.

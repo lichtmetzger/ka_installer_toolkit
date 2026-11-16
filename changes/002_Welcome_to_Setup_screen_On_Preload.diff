@@ -1,0 +1,119 @@
+# text block(s) 002 of irsetup.dat (extract them with: sfxtool.py texts-extract)
+--- original block 002
++++ fixed block 002
+@@ -1,26 +1,65 @@
+ -- These actions are performed before the screen is shown.
+ 
+--- Check to see what the latest version of KA is
+-online = HTTP.TestConnection("http://www.google.com/", 10, 80, nil, nil);
+-if (online == false) then
+-	Dialog.Message("Not connected to the Internet", "The Killer App Mod installer was unable to check\r\nif a newer version of this mod is available.\r\n\r\nYou may want to cancel the installation and visit\r\nthe LDSO message forums at http://www.ldso.net/\r\nto see if a version newer than v1.1a is available.", MB_OK, MB_ICONEXCLAMATION);
+-else
+-	-- Try to download the file containing the latest version number
+-	HTTP.Download("http://ldso.net/tronfaq/latestversions/ka.txt", SessionVar.Expand("%TempFolder%\\ka.txt"), MODE_TEXT, 10, 80, nil, nil, nil);
+-
+-	-- Check to see if an error occurred when trying to download the file.
+-	error = Application.GetLastError();
+-	if error ~= 0 then
+-		Dialog.Message("Problem checking for version update", "The Killer App Mod installer was unable to check\r\nif a newer version of this mod is available.\r\n\r\nYou may want to cancel the installation and visit\r\nthe LDSO message forums at http://www.ldso.net/\r\nto see if a version newer than v1.1a is available.", MB_OK, MB_ICONEXCLAMATION);
+-	else
+-		-- Check the version number
+-		strKAValue = TextFile.ReadToString("%TempFolder%\\ka.txt");
+-		-- If a newer version of the mod is available
+-		kaVersion = String.Find(strKAValue, "1.1a", 1, false);
+-		if kaVersion == -1 then
+-			Dialog.Message("Newer version available", "A newer version of the Killer App Mod is available.\r\n\r\nYou will now be sent to a site online where\r\nyou can download the latest version.", MB_OK, MB_ICONINFORMATION);
+-			File.OpenURL("http://tronfaq.blogspot.com/2006/02/all-tron-20-files-in-one-place.html#killerappmod", SW_MAXIMIZE);
+-			Application.Exit(0);
+-		end
++-- Check to see what the latest version of KA is.
++-- This check is optional: if the version file cannot be fetched by any method (offline, server down, etc.),
++-- the installer silently continues with the installation.
++function KA_ReadVersionFile(strFile)
++	if not File.DoesExist(strFile) then
++		return "";
++	end
++	local strText = TextFile.ReadToString(strFile);
++	if (strText == nil) or (strText == "") then
++		return "";
++	end
++	-- Ignore anything that does not look like a short version string (e.g. an HTML error or redirect page)
++	if (String.Length(strText) > 200) or (String.Find(strText, "<", 1, false) ~= -1) then
++		return "";
++	end
++	return strText;
++end
++
++strKAURL = "https://tron.hirnschwund.net/patches/latestversion.txt";
++strKAFile = SessionVar.Expand("%TempFolder%\\ka.txt");
++strKALogFile = SessionVar.Expand("%TempFolder%\\ka_versioncheck.log");
++strKAValue = "";
++strKALog = "Version check: "..strKAURL.."\r\n";
++
++-- Method 1: the installer's built-in downloader (HTTPS needs port 443)
++File.Delete(strKAFile, false, false, false, nil);
++HTTP.Download(strKAURL, strKAFile, MODE_TEXT, 10, 443, nil, nil, nil);
++kaErr = Application.GetLastError();
++strKALog = strKALog.."1) HTTP.Download: error code "..tostring(kaErr).."\r\n";
++if kaErr == 0 then
++	strKAValue = KA_ReadVersionFile(strKAFile);
++end
++
++-- Method 2: curl.exe, which ships with Windows 10 (1803) and newer and supports modern TLS
++strKACurl = SessionVar.Expand("%SystemFolder%\\curl.exe");
++if (strKAValue == "") and File.DoesExist(strKACurl) then
++	File.Delete(strKAFile, false, false, false, nil);
++	kaRet = File.Run(strKACurl, "-s -f -L --ssl-no-revoke --max-time 10 -o \""..strKAFile.."\" \""..strKAURL.."\"", "", SW_HIDE, true);
++	strKALog = strKALog.."2) curl.exe: return code "..tostring(kaRet)..", last error "..tostring(Application.GetLastError()).."\r\n";
++	strKAValue = KA_ReadVersionFile(strKAFile);
++end
++
++-- Method 3: Windows PowerShell with TLS 1.2 forced
++strKAPS = SessionVar.Expand("%SystemFolder%\\WindowsPowerShell\\v1.0\\powershell.exe");
++if (strKAValue == "") and File.DoesExist(strKAPS) then
++	File.Delete(strKAFile, false, false, false, nil);
++	kaRet = File.Run(strKAPS, "-NoProfile -NonInteractive -ExecutionPolicy Bypass -Command \"[Net.ServicePointManager]::SecurityProtocol = 3072; $r = [Net.WebRequest]::Create('"..strKAURL.."'); $r.Timeout = 8000; $sr = New-Object IO.StreamReader($r.GetResponse().GetResponseStream()); [IO.File]::WriteAllText('"..strKAFile.."', $sr.ReadToEnd()); $sr.Close()\"", "", SW_HIDE, true);
++	strKALog = strKALog.."3) PowerShell: return code "..tostring(kaRet)..", last error "..tostring(Application.GetLastError()).."\r\n";
++	strKAValue = KA_ReadVersionFile(strKAFile);
++end
++
++strKALog = strKALog.."Result: ["..strKAValue.."]\r\n";
++TextFile.WriteFromString(strKALogFile, strKALog, false);
++
++-- Only if a version could be fetched, and it does not mention this version, offer the newer version
++if strKAValue ~= "" then
++	kaVersion = String.Find(strKAValue, "1.1b", 1, false);
++	if kaVersion == -1 then
++		Dialog.Message("Newer version available", "A newer version of the Killer App Mod is available ("..String.TrimLeft(String.TrimRight(strKAValue, nil), nil)..").\r\n\r\nYou will now be sent to a site online where\r\nyou can download the latest version.", MB_OK, MB_ICONINFORMATION);
++		File.OpenURL("https://tron.hirnschwund.net/patches/", SW_MAXIMIZE);
++		Application.Exit(0);
+ 	end
+ end
+@@ -59,5 +98,5 @@
+ -- Check if there is enough space on the drive where TRON 2.0 is installed, need 2.5 GB free (install plus temporary files)
+ strRegValue = String.Left(SessionVar.Expand("%AppFolder%"), 2);
+-hdFree = Drive.GetFreeSpace(strRegValue);
++hdFree = g_GetFreeSpaceInBytes(strRegValue) / 1048576;
+ 
+ if hdFree < 2560 then
+@@ -91,5 +130,5 @@
+ if gamep5 == false or gamep6 == false then
+ 	Dialog.Message("TRON 2.0 v1.042 Patch not installed", "Please install the v1.042 Patch before trying to install the\r\nKiller App Mod again.\r\n\r\nThe Killer App Mod will update the Unofficial v1.042 Patch\r\nso that it supports the major language releases, therefore\r\nit is recommended to download and install the Unofficial Patch.\r\n\r\nWARNING: Installing the patch on an unpatched Retail\r\nCD/DVD version of the game will mean that all of your\r\ncurrent Single Player saved games will no longer load.\r\nDo not install the patch on the Retail CD/DVD version\r\nunless you are willing to start the Single Player game\r\nover from the beginning.", MB_OK, MB_ICONSTOP);
+-	File.OpenURL("http://tronfaq.blogspot.com/2006/02/all-tron-20-files-in-one-place.html#unofficialpatch", SW_MAXIMIZE);
++	File.OpenURL("https://tron.hirnschwund.net/patches/", SW_MAXIMIZE);
+ 	Application.Exit(0);
+ end
+@@ -102,5 +141,5 @@
+ 	Dialog.Message("Unofficial v1.042 Patch not found", "The installer has detected that you have not installed the Unofficial\r\nv1.042 Patch.\r\n\r\nIt is required that you download and install the Unofficial Patch\r\nbefore installing the mod.  Note that the Killer App Mod will allow\r\nyou to change the text of the Unofficial Patch from English, to any\r\nof the major language releases: Deutsch, Français, Español\r\nItaliano.\r\n\r\nWARNING: DO NOT install the Unofficial Patch after you have installed\r\nthe Killer App Mod.  You must update BEFORE installing the mod.\r\n\r\nWhen you click \"OK\" below, the installer will open your web browser to\r\na page where you can download the Unofficial Patch.", MB_OK, MB_ICONEXCLAMATION);
+ 
+-	File.OpenURL("http://tronfaq.blogspot.com/2006/02/all-tron-20-files-in-one-place.html#unofficialpatch", SW_MAXIMIZE);
++	File.OpenURL("https://tron.hirnschwund.net/patches/", SW_MAXIMIZE);
+ 	Application.Exit(0);
+ end
+@@ -142,5 +181,5 @@
+ if oldKAMod == true then
+ 	Dialog.Message("TRON 2.0: Killer App Mod v1.0 still installed", "The installer has detected that Killer App Mod v1.0 is still installed.\r\n\r\nPlease uninstall the older version and install the latest version\r\nof the Killer App Mod instead.", MB_OK, MB_ICONSTOP);
+-	File.OpenURL("http://tronfaq.blogspot.com/2006/02/all-tron-20-files-in-one-place.html#killerappmod", SW_MAXIMIZE);
++	File.OpenURL("https://tron.hirnschwund.net/patches/", SW_MAXIMIZE);
+ 	Application.Exit(0);
+ end
